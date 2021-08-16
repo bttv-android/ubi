@@ -5,5 +5,7 @@ edition = "2018"
 
 [dependencies]
 log = "0.4.0"
-env_logger = "0.8.4"
-git2 = "0.13"
+env_logger = "0.9"
+git2 = "0.13.21"
+walkdir = "2"
+zip = "0.5"
