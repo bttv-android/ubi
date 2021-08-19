@@ -9,13 +9,14 @@ mod git;
 mod mod_dir;
 mod smali;
 
-use std::process;
 use std::env;
+use std::process;
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
 fn main() {
     env_logger::init();
+
     trace!("Logger initialized, getting args");
     let (baksmali_path, dx_path, mod_dir, disass_dir, no_diff) = parse_args();
 
@@ -27,7 +28,10 @@ fn main() {
     if !no_diff {
         let filter = git::diff(&disass_dir);
         trace!("changed files: {:#?}", filter);
-        smali_files = smali_files.into_iter().filter(|path| filter.contains(path)).collect();
+        smali_files = smali_files
+            .into_iter()
+            .filter(|path| filter.contains(path))
+            .collect();
         trace!("smali files: {:#?}", smali_files);
     }
 
@@ -74,7 +78,12 @@ fn parse_args() -> (String, String, String, String, bool) {
     trace!("parse_args: disass_dir: {:?}", disass_dir);
     trace!("parse_args: no_diff: {:?}", no_diff);
 
-    if help_page || mod_dir.is_none() || disass_dir.is_none() || dx_path.is_none() || baksmali_path.is_none() {
+    if help_page
+        || mod_dir.is_none()
+        || disass_dir.is_none()
+        || dx_path.is_none()
+        || baksmali_path.is_none()
+    {
         println!("bttv-android/ubi {}", VERSION);
         println!("usage: ubi <path/to/baksmali> </path/to/dx> <mod dir>, <disass dir>");
         process::exit(1);
@@ -82,17 +91,31 @@ fn parse_args() -> (String, String, String, String, bool) {
     trace!("parse_args: won't show help");
 
     trace!("parse_args: will return tuple");
-    (baksmali_path.unwrap(), dx_path.unwrap(), mod_dir.unwrap(), disass_dir.unwrap(), no_diff)
+    (
+        baksmali_path.unwrap(),
+        dx_path.unwrap(),
+        mod_dir.unwrap(),
+        disass_dir.unwrap(),
+        no_diff,
+    )
 }
 
 fn get_all_smali_files(path: String) -> Vec<String> {
     let mut vec = vec![];
-    for entry in walkdir::WalkDir::new(path).into_iter().filter_map(|e| e.ok()) {
+    for entry in walkdir::WalkDir::new(path)
+        .into_iter()
+        .filter_map(|e| e.ok())
+    {
         let path = entry.path();
         let extension = path.extension();
         if extension.is_some() && extension.unwrap() == "smali" {
             match path.to_str() {
-                Some(v) => vec.push(v.to_string().strip_prefix("/tmp/bttv-ubi-smali/").unwrap().to_string()),
+                Some(v) => vec.push(
+                    v.to_string()
+                        .strip_prefix("/tmp/bttv-ubi-smali/")
+                        .unwrap()
+                        .to_string(),
+                ),
                 None => warn!("could not convert path to str: {}", path.display()),
             }
         }
