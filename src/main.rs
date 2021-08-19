@@ -36,7 +36,25 @@ fn main() {
     }
 
     // TODO: smali diff using smali_files
-    unimplemented!();
+    let mod_base = std::path::Path::new(mod_smali);
+    let disass_base = std::path::Path::new(&disass_dir);
+
+    for rel_path in smali_files {
+        let mod_path = mod_base.join(&rel_path);
+        let disass_path = disass_base.join(&rel_path);
+
+        let smali_mod = smali::parse_file(&mod_path);
+        let smali_disass = smali::parse_file(&disass_path);
+
+        if smali_disass.is_err() {
+            error!("error ({:?}) {}", disass_path, smali_disass.unwrap_err());
+        } else if smali_mod.is_err() {
+            error!("error ({:?}): {}", mod_path, smali_mod.unwrap_err());
+        } else {
+            debug!("{:#?}", smali_mod.unwrap());
+            debug!("{:#?}", smali_disass.unwrap());
+        }
+    }
 }
 
 /** Returns (mod dir, disass dir) or kills process with error message */

@@ -42,21 +42,20 @@ enum SmaliLine {
     Implements(String),  // impl. interface path
     Value(SmaliValue),   // value declaration
     Method(SmaliMethod), // method head
-    DebugInfo,           // .locals, line, etc.
     Other,
 }
 
-pub fn parse_file(path: String) -> Result<SmaliClass, std::io::Error> {
-    let file = File::open(&path)?;
+pub fn parse_file(path: &std::path::PathBuf) -> Result<Option<SmaliClass>, std::io::Error> {
+    let file = File::open(path)?;
     let reader = BufReader::new(file);
     let lines = reader.lines().filter(|l| l.is_ok()).map(|l| l.unwrap());
+
+    let path = path.to_str().unwrap();
 
     let mut current_class = None;
 
     for line in lines {
         let parsed = parse_line(&line);
-        println!("line: {}", line);
-        println!("pars: {:?}", parsed);
 
         match parsed {
             SmaliLine::Class(class) => {
@@ -118,9 +117,7 @@ pub fn parse_file(path: String) -> Result<SmaliClass, std::io::Error> {
         }
     }
 
-    println!("{:#?}", current_class);
-
-    unimplemented!();
+    return Ok(current_class);
 }
 
 fn parse_line(line: &String) -> SmaliLine {
@@ -252,7 +249,6 @@ fn parse_line_field(line: &str) -> SmaliLine {
 }
 
 fn parse_line_method(line: &str) -> SmaliLine {
-    trace!("parse_line_method({})", line);
     let tokens = line.split_whitespace();
 
     let mut name = None;
@@ -287,7 +283,7 @@ fn parse_line_method(line: &str) -> SmaliLine {
 
 fn is_access_modifier(token: &str) -> bool {
     return match token {
-        "public" | "private" | "protected" => true,
+        "public" | "private" | "protected" | "static" | "final" | "synthetic" | "enum" => true,
         _ => false,
     };
 }
@@ -334,13 +330,13 @@ fn parse_data_type(token: &str) -> Option<String> {
     match token {
         "V" => Some("void".to_string()),
         "Z" => Some("boolean".to_string()),
+        "F" => Some("float".to_string()),
         "I" => Some("int".to_string()),
         _ => smali_to_java_path(token),
     }
 }
 
 fn parse_method(token: &str) -> (Option<&str>, Vec<String>, Option<String>) {
-    println!("parse_method({})", token);
     enum FindingMode {
         Name,
         Params,
@@ -409,11 +405,6 @@ fn parse_method(token: &str) -> (Option<&str>, Vec<String>, Option<String>) {
             }
         }
     }
-
-    println!(
-        "name, params, returntype: {:?}, {:?}, {:?}",
-        name, params, return_type
-    );
 
     return (name, params, return_type);
 }
