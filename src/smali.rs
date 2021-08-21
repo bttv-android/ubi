@@ -33,6 +33,7 @@ struct SmaliMethod {
 struct SmaliValue {
     name: String,
     data_type: String,
+    is_static: bool,
 }
 
 #[derive(Debug)]
@@ -222,10 +223,15 @@ fn parse_line_field(line: &str) -> SmaliLine {
 
     let mut name = None;
     let mut typ = None;
+    let mut is_static = false;
 
     for token in tokens {
         if token.starts_with("#") {
             break; // ignore comments
+        }
+        if token == "static" {
+            is_static = true;
+            continue;
         }
         if token.starts_with(".") || is_modifier(token) {
             continue;
@@ -236,6 +242,10 @@ fn parse_line_field(line: &str) -> SmaliLine {
         if typ.is_none() {
             error!("type of this field seems invalid: {}", line);
         }
+        if name.is_none() {
+            error!("name of this field seems invalid: {}", line);
+        }
+        break;
     }
     if name.is_none() || typ.is_none() {
         error!("field could not be extracted for line: '{}'", line);
@@ -244,6 +254,7 @@ fn parse_line_field(line: &str) -> SmaliLine {
     let value = SmaliValue {
         name: name.unwrap(),
         data_type: typ.unwrap(),
+        is_static,
     };
     return SmaliLine::Value(value);
 }
@@ -308,6 +319,8 @@ fn smali_to_java_path(token: &str) -> Option<String> {
 }
 
 fn parse_field(token: &str) -> (Option<String>, Option<String>) {
+    trace!("parse_field({})", token);
+
     let parts = token.splitn(2, ":");
 
     let mut name = None;
@@ -322,6 +335,8 @@ fn parse_field(token: &str) -> (Option<String>, Option<String>) {
     }
 
     typ = typ.map(|v| parse_data_type(&v)).flatten();
+
+    trace!("parse_field returning ({:?}, {:?})", name, typ);
 
     return (name, typ);
 }
@@ -413,6 +428,10 @@ fn parse_method(token: &str) -> (Option<&str>, Vec<String>, Option<String>) {
 mod test {
     use super::*;
 
+    fn log_pls() {
+        let _ = env_logger::builder().is_test(true).try_init();
+    }
+
     #[test]
     fn parse_line_class() {
         let res = parse_line(
@@ -454,5 +473,19 @@ mod test {
         };
         assert_eq!(value.name, "test");
         assert_eq!(value.data_type, "boolean");
+        assert_eq!(value.is_static, false);
+    }
+
+    #[test]
+    fn parse_line_field_2() {
+        let res =
+            parse_line(&".field public static final IMAGE_DENSITY_SCALE_2X:F = 2.0f".to_string());
+        let value = match res {
+            SmaliLine::Value(value) => value,
+            _ => panic!("not a Value"),
+        };
+        assert_eq!(value.name, "IMAGE_DENSITY_SCALE_2X");
+        assert_eq!(value.data_type, "float");
+        assert_eq!(value.is_static, true);
     }
 }
