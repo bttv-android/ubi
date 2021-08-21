@@ -3,37 +3,39 @@ use std::io::{prelude::*, BufReader};
 
 #[derive(Debug)]
 pub struct SmaliClass {
-    path: String,
-    super_path: Option<String>,
-    implements: Vec<String>,
-    values: Vec<SmaliValue>,
-    methods: Vec<SmaliMethod>,
+    pub path: String,
+    pub super_path: Option<String>,
+    pub implements: Vec<String>,
+    pub values: Vec<SmaliValue>,
+    pub methods: Vec<SmaliMethod>,
+    pub is_abstract: bool,
 }
 
 impl SmaliClass {
-    fn new(path: String) -> Self {
+    fn new(path: String, is_abstract: bool) -> Self {
         Self {
             path,
             super_path: None,
             implements: vec![],
             values: vec![],
             methods: vec![],
+            is_abstract,
         }
     }
 }
 
-#[derive(Debug)]
-struct SmaliMethod {
-    name: String,
-    parameter_types: Vec<String>,
-    return_type: String,
+#[derive(Debug, Clone)]
+pub struct SmaliMethod {
+    pub name: String,
+    pub parameter_types: Vec<String>,
+    pub return_type: String,
 }
 
-#[derive(Debug)]
-struct SmaliValue {
-    name: String,
-    data_type: String,
-    is_static: bool,
+#[derive(Debug, Clone)]
+pub struct SmaliValue {
+    pub name: String,
+    pub data_type: String,
+    pub is_static: bool,
 }
 
 #[derive(Debug)]
@@ -142,9 +144,15 @@ fn parse_line_class(line: &str) -> SmaliLine {
     let tokens = line.split_whitespace();
 
     let mut path = None;
+    let mut is_abstract = false;
+
     for token in tokens {
         if token.starts_with("#") {
             break; // ignore comments
+        }
+        if token == "abstract" {
+            is_abstract = true;
+            continue;
         }
         if token.starts_with(".") || is_modifier(token) {
             continue;
@@ -160,7 +168,7 @@ fn parse_line_class(line: &str) -> SmaliLine {
         path = Some("unknown".to_string());
     }
 
-    let class = SmaliClass::new(path.unwrap());
+    let class = SmaliClass::new(path.unwrap(), is_abstract);
     return SmaliLine::Class(class);
 }
 
@@ -305,7 +313,7 @@ fn is_modifier(token: &str) -> bool {
         return true;
     }
     match token {
-        "static" | "final" | "constructor" | "varargs" => true,
+        "static" | "final" | "constructor" | "varargs" | "abstract" => true,
         _ => false,
     }
 }

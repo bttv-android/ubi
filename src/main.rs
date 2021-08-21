@@ -5,6 +5,7 @@ extern crate git2;
 extern crate walkdir;
 extern crate zip;
 
+mod diff;
 mod git;
 mod mod_dir;
 mod smali;
@@ -40,11 +41,15 @@ fn main() {
     let mod_base = std::path::Path::new(mod_smali);
     let disass_base = std::path::Path::new(&disass_dir);
 
+    let mut no_diffs_found = 0;
+    let mut diffs_found = 0;
+    let mut files_not_found = vec![];
+
     for rel_path in smali_files {
         let mod_path = mod_base.join(&rel_path);
         let disass_path = find_disass_path(&disass_base, &rel_path);
         if disass_path.is_none() {
-            error!("not found in disass dir: {}", rel_path);
+            files_not_found.push(rel_path);
             continue;
         }
         let disass_path = disass_path.unwrap();
@@ -57,10 +62,30 @@ fn main() {
         } else if smali_mod.is_err() {
             error!("error ({:?}): {}", mod_path, smali_mod.unwrap_err());
         } else {
-            debug!("{:#?}", smali_mod.unwrap());
-            debug!("{:#?}", smali_disass.unwrap());
+            let smali_mod = smali_mod.unwrap();
+            let smali_disass = smali_disass.unwrap();
+
+            if smali_mod.is_none() {
+                error!("error ({:?}) {:?}", mod_path, smali_mod);
+            } else if smali_disass.is_none() {
+                error!("error ({:?}) {:?}", disass_path, smali_disass);
+            }
+
+            if !diff::print_diff(rel_path, smali_mod.unwrap(), smali_disass.unwrap()) {
+                no_diffs_found += 1;
+            } else {
+                diffs_found += 1;
+            }
         }
     }
+
+    if !files_not_found.is_empty() {
+        for rel in files_not_found {
+            warn!("not found in disass: {}", rel);
+        }
+    }
+    info!("{} files had diffs", diffs_found);
+    info!("{} files were ok", no_diffs_found);
 }
 
 /** Returns (mod dir, disass dir) or kills process with error message */
