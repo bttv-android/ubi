@@ -10,6 +10,7 @@ mod mod_dir;
 mod smali;
 
 use std::env;
+use std::path::{Path, PathBuf};
 use std::process;
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
@@ -41,7 +42,12 @@ fn main() {
 
     for rel_path in smali_files {
         let mod_path = mod_base.join(&rel_path);
-        let disass_path = disass_base.join(&rel_path);
+        let disass_path = find_disass_path(&disass_base, &rel_path);
+        if disass_path.is_none() {
+            error!("not found in disass dir: {}", rel_path);
+            continue;
+        }
+        let disass_path = disass_path.unwrap();
 
         let smali_mod = smali::parse_file(&mod_path);
         let smali_disass = smali::parse_file(&disass_path);
@@ -139,4 +145,22 @@ fn get_all_smali_files(path: String) -> Vec<String> {
         }
     }
     return vec;
+}
+
+fn find_disass_path(base: &Path, rel_path: &String) -> Option<PathBuf> {
+    let wd = walkdir::WalkDir::new(base)
+        .max_depth(1)
+        .into_iter()
+        .filter_map(|e| e.ok());
+
+    for entry in wd {
+        let path = entry.path();
+        if path.is_dir() {
+            let path = entry.path().join(rel_path);
+            if path.exists() {
+                return Some(path);
+            }
+        }
+    }
+    return None;
 }
