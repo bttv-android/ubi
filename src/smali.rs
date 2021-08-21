@@ -305,7 +305,7 @@ fn is_modifier(token: &str) -> bool {
         return true;
     }
     match token {
-        "static" | "final" | "constructor" => true,
+        "static" | "final" | "constructor" | "varargs" => true,
         _ => false,
     }
 }
@@ -347,6 +347,7 @@ fn parse_data_type(token: &str) -> Option<String> {
         "Z" => Some("boolean".to_string()),
         "F" => Some("float".to_string()),
         "I" => Some("int".to_string()),
+        "[" => Some("[".to_string()),
         _ => smali_to_java_path(token),
     }
 }
@@ -364,6 +365,8 @@ fn parse_method(token: &str) -> (Option<&str>, Vec<String>, Option<String>) {
     let mut name = None;
     let mut params = vec![];
     let mut return_type = None;
+
+    let mut is_array = false;
 
     let mut long_start = 0;
 
@@ -387,7 +390,13 @@ fn parse_method(token: &str) -> (Option<&str>, Vec<String>, Option<String>) {
                         error!("failed to parse parameter type: {}", &token[i..=i]);
                         parsed = Some("???".to_string());
                     }
-                    params.push(parsed.unwrap());
+                    let parsed = parsed.unwrap();
+                    if parsed == "[" {
+                        is_array = true;
+                        continue;
+                    }
+                    params.push(wrap_with_array(parsed, is_array));
+                    is_array = false;
                 }
             }
             FindingMode::ParamsLong | FindingMode::ReturnLong => {
@@ -397,13 +406,17 @@ fn parse_method(token: &str) -> (Option<&str>, Vec<String>, Option<String>) {
                         error!("failed to parse type: {}", &token[long_start..=i]);
                         parsed = Some("???".to_string());
                     }
+                    let parsed = parsed.unwrap();
+
                     match &mode {
                         FindingMode::ParamsLong => {
-                            params.push(parsed.unwrap());
+                            params.push(wrap_with_array(parsed, is_array));
+                            is_array = false;
                             mode = FindingMode::Params;
                         }
                         FindingMode::ReturnLong => {
-                            return_type = parsed;
+                            return_type = Some(wrap_with_array(parsed, is_array));
+                            is_array = false;
                         }
                         _ => unreachable!(),
                     }
@@ -415,13 +428,31 @@ fn parse_method(token: &str) -> (Option<&str>, Vec<String>, Option<String>) {
                     long_start = i;
                 } else {
                     let parsed = parse_data_type(&token[i..=i]);
-                    return_type = parsed;
+                    if parsed.is_none() {
+                        error!("failed to parse return type: {}", &token[i..=i]);
+                        return_type = None;
+                    } else {
+                        let parsed = parsed.unwrap();
+                        if parsed == "[" {
+                            is_array = true;
+                        } else {
+                            return_type = Some(wrap_with_array(parsed, is_array));
+                            is_array = false;
+                        }
+                    }
                 }
             }
         }
     }
 
     return (name, params, return_type);
+}
+
+fn wrap_with_array(s: String, should: bool) -> String {
+    if !should {
+        return s;
+    }
+    return format!("Array<{}>", s);
 }
 
 #[cfg(test)]
@@ -487,5 +518,19 @@ mod test {
         assert_eq!(value.name, "IMAGE_DENSITY_SCALE_2X");
         assert_eq!(value.data_type, "float");
         assert_eq!(value.is_static, true);
+    }
+
+    #[test]
+    fn parse_line_method() {
+        log_pls();
+        let s = ".method private final varargs showViews([Landroid/view/View;)V".to_string();
+        let res = parse_line(&s);
+        let value = match res {
+            SmaliLine::Method(m) => m,
+            _ => panic!("not a Method"),
+        };
+        assert_eq!(value.name, "showViews");
+        assert_eq!(value.parameter_types, vec!["Array<android.view.View>"]);
+        assert_eq!(value.return_type, "void");
     }
 }
