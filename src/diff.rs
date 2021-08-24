@@ -116,7 +116,6 @@ fn parameter_types_equal(mods: &Vec<String>, disass: &Vec<String>) -> bool {
     return res;
 }
 
-#[derive(Debug)]
 struct ClassDiff {
     rel: String,
     is_different: bool,
@@ -139,5 +138,33 @@ impl ClassDiff {
             wrong_values: None,
             wrong_methods: None,
         }
+    }
+}
+impl std::fmt::Debug for ClassDiff {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        let mut f = f.debug_struct(&format!("ClassDiff (\"{}\")", self.rel)[..]);
+        if self.path.is_some() {
+            f.field("path", &self.path.clone().unwrap());
+        }
+        if self.is_abstract.is_some() {
+            f.field("is_abstract", &self.is_abstract.clone().unwrap());
+        }
+        if self.super_path.is_some() {
+            f.field("super_path", &self.super_path.clone().unwrap());
+        }
+        if self.wrong_implementations.is_some() {
+            f.field(
+                "wrong_implementations",
+                &self.wrong_implementations.clone().unwrap(),
+            );
+        }
+        if self.wrong_values.is_some() {
+            f.field("wrong_values", &self.wrong_values.clone().unwrap());
+        }
+        if self.wrong_methods.is_some() {
+            f.field("wrong_methods", &self.wrong_methods.clone().unwrap());
+        }
+
+        return f.finish();
     }
 }
