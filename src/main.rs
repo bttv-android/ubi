@@ -20,7 +20,7 @@ fn main() {
     env_logger::init();
 
     trace!("Logger initialized, getting args");
-    let (baksmali_path, dx_path, mod_dir, disass_dir, no_diff) = parse_args();
+    let (baksmali_path, dx_path, mod_dir, disass_dir, no_diff, ignore_default_constructors) = parse_args();
 
     let mod_smali = mod_dir::handle_mod_dir(dx_path, baksmali_path, &mod_dir);
 
@@ -37,7 +37,6 @@ fn main() {
         trace!("smali files: {:#?}", smali_files);
     }
 
-    // TODO: smali diff using smali_files
     let mod_base = std::path::Path::new(mod_smali);
     let disass_base = std::path::Path::new(&disass_dir);
 
@@ -71,7 +70,7 @@ fn main() {
                 error!("error ({:?}) {:?}", disass_path, smali_disass);
             }
 
-            if !diff::print_diff(rel_path, smali_mod.unwrap(), smali_disass.unwrap()) {
+            if !diff::print_diff(rel_path, smali_mod.unwrap(), smali_disass.unwrap(), ignore_default_constructors) {
                 no_diffs_found += 1;
             } else {
                 diffs_found += 1;
@@ -89,34 +88,41 @@ fn main() {
 }
 
 /** Returns (mod dir, disass dir) or kills process with error message */
-fn parse_args() -> (String, String, String, String, bool) {
+fn parse_args() -> (String, String, String, String, bool, bool) {
     let mut no_diff = false;
     let mut help_page = false;
     let mut mod_dir = None;
     let mut disass_dir = None;
     let mut dx_path = None;
     let mut baksmali_path = None;
+    let mut ignore_default_constructors = false;
 
     let mut neg = 0;
 
     for (i, arg) in env::args().enumerate() {
-        if arg == "-h" || arg == "--help" {
+        trace!("{}", arg);
+        if i == 0 {
+            continue;
+        } else if arg == "-h" || arg == "--help" {
             help_page = true;
             neg += 1;
         } else if arg == "--no-diff" {
             no_diff = true;
             neg += 1;
-        }
-
-        let i = i - neg;
-        if i == 1 {
-            baksmali_path = Some(arg);
-        } else if i == 2 {
-            dx_path = Some(arg);
-        } else if i == 3 {
-            mod_dir = Some(arg);
-        } else if i == 4 {
-            disass_dir = Some(arg);
+        } else if arg == "--ignore-default-constructors" {
+            ignore_default_constructors = true;
+            neg += 1;
+        } else {
+            let i = i - neg;
+            if i == 1 {
+                baksmali_path = Some(arg);
+            } else if i == 2 {
+                dx_path = Some(arg);
+            } else if i == 3 {
+                mod_dir = Some(arg);
+            } else if i == 4 {
+                disass_dir = Some(arg);
+            }
         }
     }
 
@@ -126,6 +132,7 @@ fn parse_args() -> (String, String, String, String, bool) {
     trace!("parse_args: mod_dir: {:?}", mod_dir);
     trace!("parse_args: disass_dir: {:?}", disass_dir);
     trace!("parse_args: no_diff: {:?}", no_diff);
+    trace!("parse_args: ignore-default-constructors: {}", ignore_default_constructors);
 
     if help_page
         || mod_dir.is_none()
@@ -134,7 +141,11 @@ fn parse_args() -> (String, String, String, String, bool) {
         || baksmali_path.is_none()
     {
         println!("bttv-android/ubi {}", VERSION);
-        println!("usage: ubi <path/to/baksmali> </path/to/dx> <mod dir>, <disass dir>");
+        println!("usage: ubi [options] <path/to/baksmali> </path/to/dx> <mod dir>, <disass dir>");
+        println!("options:");
+        println!("  --help | -h");
+        println!("  --no-diff");
+        println!("  --ignore-default-constructors");
         process::exit(1);
     }
     trace!("parse_args: won't show help");
@@ -146,6 +157,7 @@ fn parse_args() -> (String, String, String, String, bool) {
         mod_dir.unwrap(),
         disass_dir.unwrap(),
         no_diff,
+        ignore_default_constructors,
     )
 }
 

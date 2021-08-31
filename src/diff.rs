@@ -1,7 +1,7 @@
 use crate::smali::{SmaliClass, SmaliMethod, SmaliValue};
 
-pub fn print_diff(rel: String, smali_mod: SmaliClass, smali_disass: SmaliClass) -> bool {
-    let diff = gen_diff(rel, smali_mod, smali_disass);
+pub fn print_diff(rel: String, smali_mod: SmaliClass, smali_disass: SmaliClass, ignore_default_constructors: bool) -> bool {
+    let diff = gen_diff(rel, smali_mod, smali_disass, ignore_default_constructors);
     if diff.is_different {
         warn!("{:#?}", diff);
         return true;
@@ -9,7 +9,7 @@ pub fn print_diff(rel: String, smali_mod: SmaliClass, smali_disass: SmaliClass) 
     return false;
 }
 
-fn gen_diff(rel: String, smali_mod: SmaliClass, smali_disass: SmaliClass) -> ClassDiff {
+fn gen_diff(rel: String, smali_mod: SmaliClass, smali_disass: SmaliClass, ignore_default_constructors: bool) -> ClassDiff {
     let mut class_diff = ClassDiff::new(rel);
 
     if smali_mod.path != smali_disass.path {
@@ -75,6 +75,9 @@ fn gen_diff(rel: String, smali_mod: SmaliClass, smali_disass: SmaliClass) -> Cla
                         alternatives.clear();
                         alternatives.push(disass_method.clone());
                     }
+                } else if ignore_default_constructors && method.name == "<init>" && method.parameter_types.is_empty() {
+                    found = true;
+                    break;
                 } else {
                     alternatives.push(disass_method.clone());
                 }
