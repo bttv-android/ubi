@@ -20,7 +20,15 @@ fn main() {
     env_logger::init();
 
     trace!("Logger initialized, getting args");
-    let (baksmali_path, dx_path, mod_dir, disass_dir, no_diff, ignore_default_constructors) = parse_args();
+    let (
+        baksmali_path,
+        dx_path,
+        mod_dir, 
+        disass_dir,
+        no_diff,
+        ignore_default_constructors,
+        ignore_object_super
+    ) = parse_args();
 
     let mod_smali = mod_dir::handle_mod_dir(dx_path, baksmali_path, &mod_dir);
 
@@ -70,7 +78,7 @@ fn main() {
                 error!("error ({:?}) {:?}", disass_path, smali_disass);
             }
 
-            if !diff::print_diff(rel_path, smali_mod.unwrap(), smali_disass.unwrap(), ignore_default_constructors) {
+            if !diff::print_diff(rel_path, smali_mod.unwrap(), smali_disass.unwrap(), ignore_default_constructors, ignore_object_super) {
                 no_diffs_found += 1;
             } else {
                 diffs_found += 1;
@@ -87,8 +95,8 @@ fn main() {
     info!("{} files were ok", no_diffs_found);
 }
 
-/** Returns (mod dir, disass dir) or kills process with error message */
-fn parse_args() -> (String, String, String, String, bool, bool) {
+/** Returns or kills process with error message */
+fn parse_args() -> (String, String, String, String, bool, bool, bool) {
     let mut no_diff = false;
     let mut help_page = false;
     let mut mod_dir = None;
@@ -96,6 +104,7 @@ fn parse_args() -> (String, String, String, String, bool, bool) {
     let mut dx_path = None;
     let mut baksmali_path = None;
     let mut ignore_default_constructors = false;
+    let mut ignore_object_super = false;
 
     let mut neg = 0;
 
@@ -111,6 +120,9 @@ fn parse_args() -> (String, String, String, String, bool, bool) {
             neg += 1;
         } else if arg == "--ignore-default-constructors" {
             ignore_default_constructors = true;
+            neg += 1;
+        } else if arg == "--ignore-object-super" {
+            ignore_object_super = true;
             neg += 1;
         } else {
             let i = i - neg;
@@ -133,6 +145,7 @@ fn parse_args() -> (String, String, String, String, bool, bool) {
     trace!("parse_args: disass_dir: {:?}", disass_dir);
     trace!("parse_args: no_diff: {:?}", no_diff);
     trace!("parse_args: ignore-default-constructors: {}", ignore_default_constructors);
+    trace!("parse_args: ignore-object-super: {}", ignore_object_super);
 
     if help_page
         || mod_dir.is_none()
@@ -146,6 +159,7 @@ fn parse_args() -> (String, String, String, String, bool, bool) {
         println!("  --help | -h");
         println!("  --no-diff");
         println!("  --ignore-default-constructors");
+        println!("  --ignore-object-super");
         process::exit(1);
     }
     trace!("parse_args: won't show help");
@@ -158,6 +172,7 @@ fn parse_args() -> (String, String, String, String, bool, bool) {
         disass_dir.unwrap(),
         no_diff,
         ignore_default_constructors,
+        ignore_object_super,
     )
 }
 
