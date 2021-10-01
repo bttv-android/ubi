@@ -1,7 +1,13 @@
 use crate::smali::{SmaliClass, SmaliMethod, SmaliValue};
 
-pub fn print_diff(rel: String, smali_mod: SmaliClass, smali_disass: SmaliClass, ignore_default_constructors: bool) -> bool {
-    let diff = gen_diff(rel, smali_mod, smali_disass, ignore_default_constructors);
+pub fn print_diff(
+        rel: String, 
+        smali_mod: SmaliClass,
+        smali_disass: SmaliClass,
+        ignore_default_constructors: bool,
+        ignore_object_super: bool
+    ) -> bool {
+    let diff = gen_diff(rel, smali_mod, smali_disass, ignore_default_constructors, ignore_object_super);
     if diff.is_different {
         warn!("{:#?}", diff);
         return true;
@@ -9,7 +15,13 @@ pub fn print_diff(rel: String, smali_mod: SmaliClass, smali_disass: SmaliClass, 
     return false;
 }
 
-fn gen_diff(rel: String, smali_mod: SmaliClass, smali_disass: SmaliClass, ignore_default_constructors: bool) -> ClassDiff {
+fn gen_diff(
+        rel: String,
+        smali_mod: SmaliClass,
+        smali_disass: SmaliClass,
+        ignore_default_constructors: bool,
+        ignore_object_super: bool
+    ) -> ClassDiff {
     let mut class_diff = ClassDiff::new(rel);
 
     if smali_mod.path != smali_disass.path {
@@ -21,8 +33,10 @@ fn gen_diff(rel: String, smali_mod: SmaliClass, smali_disass: SmaliClass, ignore
         class_diff.is_abstract = Some((smali_mod.is_abstract, smali_disass.is_abstract));
     }
     if smali_mod.super_path != smali_disass.super_path {
-        class_diff.is_different = true;
-        class_diff.super_path = Some((smali_mod.super_path, smali_disass.super_path));
+        if !(ignore_object_super && smali_mod.super_path == Some("java.lang.Object".to_string())) {
+            class_diff.is_different = true;
+            class_diff.super_path = Some((smali_mod.super_path, smali_disass.super_path));
+        }
     }
 
     let mut wrong_implementations = vec![];
