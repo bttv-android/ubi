@@ -1,6 +1,5 @@
+use git2::{Oid, Reference, Repository};
 use std::process;
-use git2::{Repository, Reference, Oid};
-
 
 pub fn diff(disass_dir: &String) -> Vec<String> {
     trace!("opening disass repo");
@@ -13,13 +12,14 @@ pub fn diff(disass_dir: &String) -> Vec<String> {
     let base = get_tag(&repo, "refs/tags/base");
     let update = get_tag(&repo, "refs/tags/update");
 
-    let diff = repo.diff_tree_to_tree(Some(&base), Some(&update), None).expect("diffing tags");
+    let diff = repo
+        .diff_tree_to_tree(Some(&base), Some(&update), None)
+        .expect("diffing tags");
 
     let mut vec = vec![];
     for delta in diff.deltas() {
-
         for file in [delta.old_file(), delta.new_file()] {
-        let string = file.path().unwrap().to_str().unwrap().to_string();
+            let string = file.path().unwrap().to_str().unwrap().to_string();
             if !string.ends_with(".smali") {
                 continue;
             }

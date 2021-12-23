@@ -1,13 +1,13 @@
+use crate::args::UbiArgs;
 use crate::smali::{SmaliClass, SmaliMethod, SmaliValue};
 
 pub fn print_diff(
-        rel: String, 
-        smali_mod: SmaliClass,
-        smali_disass: SmaliClass,
-        ignore_default_constructors: bool,
-        ignore_object_super: bool
-    ) -> bool {
-    let diff = gen_diff(rel, smali_mod, smali_disass, ignore_default_constructors, ignore_object_super);
+    args: &UbiArgs,
+    rel: String,
+    smali_mod: SmaliClass,
+    smali_disass: SmaliClass,
+) -> bool {
+    let diff = gen_diff(args, rel, smali_mod, smali_disass);
     if diff.is_different {
         warn!("{:#?}", diff);
         return true;
@@ -16,12 +16,11 @@ pub fn print_diff(
 }
 
 fn gen_diff(
-        rel: String,
-        smali_mod: SmaliClass,
-        smali_disass: SmaliClass,
-        ignore_default_constructors: bool,
-        ignore_object_super: bool
-    ) -> ClassDiff {
+    args: &UbiArgs,
+    rel: String,
+    smali_mod: SmaliClass,
+    smali_disass: SmaliClass,
+) -> ClassDiff {
     let mut class_diff = ClassDiff::new(rel);
 
     if smali_mod.path != smali_disass.path {
@@ -33,7 +32,9 @@ fn gen_diff(
         class_diff.is_abstract = Some((smali_mod.is_abstract, smali_disass.is_abstract));
     }
     if smali_mod.super_path != smali_disass.super_path {
-        if !(ignore_object_super && smali_mod.super_path == Some("java.lang.Object".to_string())) {
+        if !(args.ignore_object_super
+            && smali_mod.super_path == Some("java.lang.Object".to_string()))
+        {
             class_diff.is_different = true;
             class_diff.super_path = Some((smali_mod.super_path, smali_disass.super_path));
         }
@@ -89,7 +90,10 @@ fn gen_diff(
                         alternatives.clear();
                         alternatives.push(disass_method.clone());
                     }
-                } else if ignore_default_constructors && method.name == "<init>" && method.parameter_types.is_empty() {
+                } else if args.ignore_default_constructors
+                    && method.name == "<init>"
+                    && method.parameter_types.is_empty()
+                {
                     found = true;
                     break;
                 } else {

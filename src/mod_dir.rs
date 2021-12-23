@@ -1,16 +1,19 @@
-use std::{path, fs};
+use crate::args::UbiArgs;
+use std::{fs, path};
 use zip::ZipArchive;
 
-
-pub fn handle_mod_dir(dx_path: String, baksmali_path: String, dir_path: &String) -> &'static str {
+pub fn handle_mod_dir(args: &UbiArgs) -> &'static str {
     trace!("handle_mod_dir()");
 
-    let path = path::Path::new(dir_path);
+    let path = path::Path::new(&args.mod_dir);
     let aar_path = path.join("./twitch/build/outputs/aar/twitch-debug.aar");
-    
+
     let f = match fs::File::open(aar_path) {
         Ok(f) => f,
-        Err(e) => panic!("could not open twitch-debug.aar: {}, please run ./buildsource first", e),
+        Err(e) => panic!(
+            "could not open twitch-debug.aar: {}, please run ./buildsource first",
+            e
+        ),
     };
     let mut archive = match ZipArchive::new(f) {
         Err(e) => panic!("{}", e),
@@ -35,7 +38,7 @@ pub fn handle_mod_dir(dx_path: String, baksmali_path: String, dir_path: &String)
 
     trace!("running dx");
     let output = std::process::Command::new("sh")
-        .arg(dx_path)
+        .arg(&args.dx_path)
         .arg("--dex")
         .arg("--output=/tmp/bttv-ubi-dx.dex")
         .arg("/tmp/bttv-ubi-classes.jar")
@@ -47,19 +50,18 @@ pub fn handle_mod_dir(dx_path: String, baksmali_path: String, dir_path: &String)
     if !output.status.success() {
         panic!("dx failed to build classes (see debug logs for more)");
     }
-    
 
     trace!("running smali");
     let output = std::process::Command::new("java")
         .arg("-jar")
-        .arg(baksmali_path)
+        .arg(&args.baksmali_path)
         .arg("d")
         .arg("/tmp/bttv-ubi-dx.dex")
         .arg("-o")
         .arg("/tmp/bttv-ubi-smali")
         .output()
         .expect("");
-    
+
     debug!("smali output: {:#?}", output);
 
     if !output.status.success() {
