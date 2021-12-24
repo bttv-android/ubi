@@ -1,0 +1,12 @@
+[package]
+name = "ubi"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+log = "0.4.0"
+env_logger = "0.9"
+git2 = "0.13.21"
+walkdir = "2"
+zip = "0.5"
+clap = "2.34.0"
