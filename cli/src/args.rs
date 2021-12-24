@@ -1,7 +1,10 @@
 use crate::VERSION;
 use clap::App;
 use clap::Arg;
-use ubi_core::UbiArgs;
+use ubi_core::{
+    ubignore::{parse_ubignore, UbiIgnore},
+    UbiArgs,
+};
 
 pub fn parse_args() -> UbiArgs {
     let matches = get_clap_app().get_matches();
@@ -14,7 +17,49 @@ pub fn parse_args() -> UbiArgs {
         no_diff: matches.is_present("no-diff"),
         ignore_default_constructors: matches.is_present("ignore-default-constructors"),
         ignore_object_super: matches.is_present("ignore-object-super"),
+        ubignore: get_ubignore(),
     }
+}
+
+fn get_ubignore() -> Option<UbiIgnore> {
+    let cwd = get_cwd()?;
+    let ubignore_path = cwd.join(".ubignore");
+
+    let content = std::fs::read_to_string(ubignore_path);
+
+    if content.is_err() {
+        let err = content.unwrap_err();
+        if err.kind() == std::io::ErrorKind::NotFound {
+            return None;
+        }
+        warn!("Could not read .ubignore file: {:?}", err);
+        return None;
+    }
+
+    let content = content.unwrap();
+
+    let ubignore = parse_ubignore(content);
+
+    if ubignore.is_err() {
+        error!(".ubignore could not be parsed: {:?}", ubignore.unwrap_err());
+        std::process::exit(1);
+    }
+
+    return Some(ubignore.unwrap());
+}
+
+fn get_cwd() -> Option<std::path::PathBuf> {
+    let cwd = std::env::current_dir();
+
+    if cwd.is_err() {
+        warn!(
+            "Could not get current working directory: {:?}",
+            cwd.unwrap_err()
+        );
+        return None;
+    }
+
+    return Some(cwd.unwrap());
 }
 
 fn get_clap_app() -> App<'static, 'static> {

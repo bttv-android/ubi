@@ -1,8 +1,10 @@
 #[macro_use]
 extern crate log;
+extern crate yaml_rust;
 
 pub mod diff;
 pub mod smali;
+pub mod ubignore;
 
 #[derive(Debug)]
 pub struct UbiArgs {
@@ -13,12 +15,5 @@ pub struct UbiArgs {
     pub no_diff: bool,
     pub ignore_default_constructors: bool,
     pub ignore_object_super: bool,
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
+    pub ubignore: Option<ubignore::UbiIgnore>,
 }
