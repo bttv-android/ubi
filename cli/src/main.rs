@@ -12,7 +12,7 @@ mod mod_dir;
 
 use std::env;
 use std::path::{Path, PathBuf};
-use ubi_core::{diff, smali};
+use ubi_core::{diff, smali, ubignore};
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
@@ -82,7 +82,9 @@ fn main() {
 
     if !files_not_found.is_empty() {
         for rel in files_not_found {
-            warn!("not found in disass: {}", rel);
+            if !ubignore::should_ignore_additional_file(&args, &rel) {
+                warn!("not found in disass: {}", rel);
+            }
         }
     }
     info!("{} files had diffs", diffs_found);

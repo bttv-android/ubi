@@ -1,3 +1,4 @@
+use crate::UbiArgs;
 use crate::smali::SmaliMethod;
 use yaml_rust::{yaml::Hash, Yaml, YamlLoader};
 
@@ -12,6 +13,23 @@ pub struct UbiIgnoreClass {
 pub struct UbiIgnore {
     pub ignore: Vec<UbiIgnoreClass>,
     pub ignore_not_found: Vec<String>,
+}
+
+pub fn should_ignore_additional_file(args: &UbiArgs, string: &String) -> bool {
+    let ubignore = &args.ubignore;
+    if ubignore.is_none() {
+        return false;
+    }
+    let ubignore = Option::as_ref(ubignore).unwrap();
+    let ignore_not_found = &ubignore.ignore_not_found;
+
+    for cmp in ignore_not_found {
+        if cmp == string {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 pub fn parse_ubignore(file_content: String) -> Result<UbiIgnore, yaml_rust::ScanError> {
