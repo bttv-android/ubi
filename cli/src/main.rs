@@ -2,18 +2,17 @@
 extern crate log;
 extern crate clap;
 extern crate env_logger;
-extern crate git2;
+extern crate ubi_core;
 extern crate walkdir;
 extern crate zip;
 
 mod args;
-mod diff;
 mod git;
 mod mod_dir;
-mod smali;
 
 use std::env;
 use std::path::{Path, PathBuf};
+use ubi_core::{diff, smali};
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 

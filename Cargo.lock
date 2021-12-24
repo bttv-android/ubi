@@ -441,6 +441,7 @@ dependencies = [
  "env_logger",
  "git2",
  "log",
+ "ubi-core",
  "walkdir",
  "zip",
 ]
@@ -448,6 +449,11 @@ dependencies = [
 [[package]]
 name = "ubi-core"
 version = "0.1.0"
+dependencies = [
+ "env_logger",
+ "git2",
+ "log",
+]
 
 [[package]]
 name = "unicode-bidi"

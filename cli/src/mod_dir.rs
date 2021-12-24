@@ -1,5 +1,5 @@
-use crate::args::UbiArgs;
 use std::{fs, path};
+use ubi_core::UbiArgs;
 use zip::ZipArchive;
 
 pub fn handle_mod_dir(args: &UbiArgs) -> &'static str {

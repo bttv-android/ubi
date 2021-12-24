@@ -1,17 +1,7 @@
 use crate::VERSION;
 use clap::App;
 use clap::Arg;
-
-#[derive(Debug)]
-pub struct UbiArgs {
-    pub baksmali_path: String,
-    pub dx_path: String,
-    pub mod_dir: String,
-    pub disass_dir: String,
-    pub no_diff: bool,
-    pub ignore_default_constructors: bool,
-    pub ignore_object_super: bool,
-}
+use ubi_core::UbiArgs;
 
 pub fn parse_args() -> UbiArgs {
     let matches = get_clap_app().get_matches();

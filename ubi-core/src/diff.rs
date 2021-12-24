@@ -1,5 +1,5 @@
-use crate::args::UbiArgs;
 use crate::smali::{SmaliClass, SmaliMethod, SmaliValue};
+use crate::UbiArgs;
 
 pub fn print_diff(
     args: &UbiArgs,
