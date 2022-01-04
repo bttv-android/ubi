@@ -354,6 +354,7 @@ fn parse_data_type(token: &str) -> Option<String> {
         "V" => Some("void".to_string()),
         "Z" => Some("boolean".to_string()),
         "F" => Some("float".to_string()),
+        "D" => Some("double".to_string()),
         "I" => Some("int".to_string()),
         "J" => Some("long".to_string()),
         "[" => Some("[".to_string()),
