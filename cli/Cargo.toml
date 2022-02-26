@@ -1,13 +1,12 @@
 [package]
 name = "ubi"
-version = "0.1.0"
+version = "2.0.1"
 edition = "2018"
 
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
 [dependencies]
-ubi-core = { path = "../ubi-core" }
-log = "0.4.0"
-env_logger = "0.9"
-walkdir = "2"
-zip = "0.5"
-clap = "2.34.0"
-git2 = "0.13.21"
+clap = { version = "3.1.2", features = ["derive"] }
+tracing = "0.1"
+tracing-subscriber = {version = "0.3", features = ["parking_lot", "env-filter"]}
+parking_lot = "0.12.0"

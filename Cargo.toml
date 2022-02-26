@@ -1,6 +1,5 @@
 [workspace]
 
 members = [
-  "cli",
-  "ubi-core"
+  "cli"
 ]
