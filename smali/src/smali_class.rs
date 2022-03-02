@@ -1,4 +1,4 @@
-pub type SmaliType<'a> = &'a str;
+pub type SmaliType = String;
 
 #[derive(Debug, PartialEq)]
 pub enum SmaliAccessModifier {
@@ -19,16 +19,21 @@ impl SmaliAccessModifier {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct SmaliClass<'a> {
+pub struct SmaliClass {
+    // parsed from .class line
     pub class_path: String,
-    pub super_path: Option<&'a str>,
     pub access: SmaliAccessModifier,
-    pub interfaces: Vec<&'a str>,
     pub is_abstract: bool,
-    pub values: Vec<SmaliValue<'a>>,
-    pub methods: Vec<SmaliMethod<'a>>,
+
+    // parsed from .super line
+    pub super_path: Option<String>,
+
+    // parsed from .implements lines
+    pub interfaces: Vec<String>,
+    pub values: Vec<SmaliValue>,
+    pub methods: Vec<SmaliMethod>,
 }
-impl<'a> SmaliClass<'a> {
+impl SmaliClass {
     pub fn new(class_path: String, access: SmaliAccessModifier, is_abstract: bool) -> Self {
         Self {
             class_path,
@@ -43,18 +48,18 @@ impl<'a> SmaliClass<'a> {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct SmaliMethod<'a> {
-    pub name: &'a str,
-    pub parameter_types: Vec<SmaliType<'a>>,
-    pub return_type: SmaliType<'a>,
+pub struct SmaliMethod {
+    pub name: String,
+    pub parameter_types: Vec<SmaliType>,
+    pub return_type: SmaliType,
     pub is_static: bool,
     pub is_final: bool,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct SmaliValue<'a> {
-    pub name: &'a str,
-    pub data_type: SmaliType<'a>,
+pub struct SmaliValue {
+    pub name: String,
+    pub data_type: SmaliType,
     pub is_static: bool,
     pub is_final: bool,
 }

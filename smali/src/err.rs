@@ -8,6 +8,10 @@ pub enum ParserError {
     MissingClassPath(String),
     #[error("invalid class path found: {0}")]
     InvalidClassPath(String),
+    #[error("class super with missing super path found in this line: {0}")]
+    MissingSuperPath(String),
+    #[error(".class declaration not found")]
+    MissingClass(),
 }
 
 pub type ParserResult<T> = Result<T, ParserError>;
