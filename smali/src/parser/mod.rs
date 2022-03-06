@@ -8,6 +8,10 @@ use crate::parser::super_p::parse_line_super;
 use crate::smali_class::*;
 use rayon::iter::ParallelIterator;
 use std::sync::Mutex;
+use util::set_mutex_once_or_err;
+
+const ERR_TOO_MANY_CLASSES: ParserError = ParserError::TooManyClasses();
+const ERR_TOO_MANY_SUPERS: ParserError = ParserError::TooManySupers();
 
 pub fn parse_smali<'a>(
     lines: impl ParallelIterator<Item = impl AsRef<str> + Send> + Send,
@@ -20,22 +24,10 @@ pub fn parse_smali<'a>(
         .try_for_each(|line| {
             Ok(match line? {
                 Line::Class(class) => {
-                    // unwrap: other threads holding this lock can only panic in this line, thus the lock never gets poisoned
-                    let mut current_class = current_class.lock().unwrap();
-
-                    if let Some(_) = *current_class {
-                        return Err(ParserError::TooManyClasses());
-                    }
-                    *current_class = Some(class);
+                    set_mutex_once_or_err(&current_class, class, ERR_TOO_MANY_CLASSES)?;
                 }
                 Line::Super(super_p) => {
-                    // unwrap: other threads holding this lock can only panic in this line, thus the lock never gets poisoned
-                    let mut super_path = super_path.lock().unwrap();
-
-                    if let Some(_) = *super_path {
-                        return Err(ParserError::TooManySupers());
-                    }
-                    *super_path = Some(super_p);
+                    set_mutex_once_or_err(&super_path, super_p, ERR_TOO_MANY_SUPERS)?;
                 }
                 _ => todo!(),
             })

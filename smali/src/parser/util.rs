@@ -51,6 +51,21 @@ pub fn smali_to_java_path(input: &str) -> ParserResult<String> {
     return Ok(string);
 }
 
+/// Sets the value of a Mutex<Option<I>> and errors when I was not None
+pub fn set_mutex_once_or_err<I>(
+    mutex: &std::sync::Mutex<Option<I>>,
+    value: I,
+    error: ParserError,
+) -> ParserResult<()> {
+    let mut mutex = mutex.lock()?;
+
+    if let Some(_) = *mutex {
+        return Err(error);
+    }
+    *mutex = Some(value);
+    Ok(())
+}
+
 #[cfg(test)]
 mod test {
     use super::*;

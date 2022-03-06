@@ -1,3 +1,4 @@
+use std::sync::PoisonError;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -16,6 +17,14 @@ pub enum ParserError {
     TooManyClasses(),
     #[error("multiple .super declarations found")]
     TooManySupers(),
+    #[error("PoisonedLockError: {0:#?}")]
+    PoisonedLockError(String),
+}
+
+impl<T> From<PoisonError<T>> for ParserError {
+    fn from(err: PoisonError<T>) -> Self {
+        Self::PoisonedLockError(err.to_string())
+    }
 }
 
 pub type ParserResult<T> = Result<T, ParserError>;
