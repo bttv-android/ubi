@@ -7,7 +7,7 @@ pub fn parse_line_super(line: &str) -> ParserResult<String> {
     let mut super_path = None;
 
     for token in tokens {
-        if token.starts_with("#") {
+        if token.starts_with('#') {
             break; // ignore comments
         }
 
@@ -23,7 +23,7 @@ pub fn parse_line_super(line: &str) -> ParserResult<String> {
         return Err(ParserError::MissingSuperPath(line.to_string()));
     }
 
-    return Ok(super_path.unwrap());
+    Ok(super_path.unwrap())
 }
 
 #[cfg(test)]

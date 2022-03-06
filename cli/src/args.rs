@@ -34,5 +34,6 @@ pub struct Args {
 pub fn parse() -> Args {
     let args = Args::parse();
     debug!("args: {:#?}", args);
-    return args;
+
+    args
 }

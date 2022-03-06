@@ -15,7 +15,7 @@ use util::set_mutex_once_or_err;
 const ERR_TOO_MANY_CLASSES: ParserError = ParserError::TooManyClasses();
 const ERR_TOO_MANY_SUPERS: ParserError = ParserError::TooManySupers();
 
-pub fn parse_smali<'a>(
+pub fn parse_smali(
     lines: impl ParallelIterator<Item = impl AsRef<str> + Send> + Send,
 ) -> ParserResult<SmaliClass> {
     let current_class = Mutex::new(None);
@@ -25,7 +25,7 @@ pub fn parse_smali<'a>(
     let res: ParserResult<()> = lines
         .map(|line| parse_line(line.as_ref()))
         .try_for_each(|line| {
-            Ok(match line? {
+            match line? {
                 Line::Class(class) => {
                     set_mutex_once_or_err(&current_class, class, ERR_TOO_MANY_CLASSES)?;
                 }
@@ -36,7 +36,8 @@ pub fn parse_smali<'a>(
                     interfaces.push(interface_path);
                 }
                 _ => todo!(),
-            })
+            }
+            Ok(())
         });
 
     if let Err(err) = res {
@@ -60,7 +61,7 @@ pub fn parse_smali<'a>(
         current_class.interfaces.push(interf);
     }
 
-    return Ok(current_class);
+    Ok(current_class)
 }
 
 #[derive(Debug)]

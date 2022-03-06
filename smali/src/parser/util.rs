@@ -2,25 +2,22 @@ use crate::parser::ParserError;
 use crate::ParserResult;
 
 pub fn is_access_modifier(token: &str) -> bool {
-    match token {
-        "private" | "public" | "protected" => true,
-        _ => false,
-    }
+    matches!(token, "private" | "public" | "protected")
 }
 
 pub fn is_modifier(token: &str) -> bool {
     if is_access_modifier(token) {
         return true;
     }
-    match token {
-        "static" | "final" | "synthetic" | "constructor" | "enum" | "varargs" | "abstract" => true,
-        _ => false,
-    }
+    matches!(
+        token,
+        "static" | "final" | "synthetic" | "constructor" | "enum" | "varargs" | "abstract"
+    )
 }
 
 pub fn smali_to_java_path(input: &str) -> ParserResult<String> {
     let error = Err(ParserError::InvalidClassPath(input.to_string()));
-    if input.len() == 0 {
+    if input.is_empty() {
         return error;
     }
 
@@ -48,7 +45,7 @@ pub fn smali_to_java_path(input: &str) -> ParserResult<String> {
         }
     }
 
-    return Ok(string);
+    Ok(string)
 }
 
 /// Sets the value of a Mutex<Option<I>> and errors when I was not None
@@ -59,7 +56,7 @@ pub fn set_mutex_once_or_err<I>(
 ) -> ParserResult<()> {
     let mut mutex = mutex.lock()?;
 
-    if let Some(_) = *mutex {
+    if mutex.is_some() {
         return Err(error);
     }
     *mutex = Some(value);

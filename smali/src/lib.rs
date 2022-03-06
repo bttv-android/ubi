@@ -25,6 +25,6 @@ pub fn parse_file(file_path: &str) -> ParserResult<SmaliClass> {
 }
 
 /// Parses a smali class (in form of a String or alike) into a SmaliClass
-pub fn parse_class<'a>(class_string: &'a str) -> ParserResult<SmaliClass> {
+pub fn parse_class(class_string: &str) -> ParserResult<SmaliClass> {
     parser::parse_smali(class_string.lines().par_bridge())
 }

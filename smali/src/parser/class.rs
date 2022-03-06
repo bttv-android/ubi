@@ -1,6 +1,7 @@
 use crate::err::*;
 use crate::parser::util::*;
 use crate::smali_class::*;
+use std::str::FromStr;
 
 pub fn parse_line_class(line: &str) -> ParserResult<SmaliClass> {
     let tokens = line.split_whitespace();
@@ -10,7 +11,7 @@ pub fn parse_line_class(line: &str) -> ParserResult<SmaliClass> {
     let mut access = SmaliAccessModifier::Package;
 
     for token in tokens {
-        if token.starts_with("#") {
+        if token.starts_with('#') {
             break; // ignore comments
         }
 
@@ -19,7 +20,7 @@ pub fn parse_line_class(line: &str) -> ParserResult<SmaliClass> {
             continue;
         }
 
-        if let Some(access_modifier) = SmaliAccessModifier::from_str(token) {
+        if let Ok(access_modifier) = SmaliAccessModifier::from_str(token) {
             access = access_modifier;
             continue;
         }
@@ -37,7 +38,7 @@ pub fn parse_line_class(line: &str) -> ParserResult<SmaliClass> {
     }
 
     let class = SmaliClass::new(class_path.unwrap(), access, is_abstract);
-    return Ok(class);
+    Ok(class)
 }
 
 #[cfg(test)]

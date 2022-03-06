@@ -7,13 +7,14 @@ pub enum SmaliAccessModifier {
     Protected,
     Package,
 }
-impl SmaliAccessModifier {
-    pub fn from_str(token: &str) -> Option<Self> {
+impl std::str::FromStr for SmaliAccessModifier {
+    type Err = ();
+    fn from_str(token: &str) -> Result<Self, Self::Err> {
         match token {
-            "public" => Some(SmaliAccessModifier::Public),
-            "private" => Some(SmaliAccessModifier::Private),
-            "protected" => Some(SmaliAccessModifier::Protected),
-            _ => None,
+            "public" => Ok(SmaliAccessModifier::Public),
+            "private" => Ok(SmaliAccessModifier::Private),
+            "protected" => Ok(SmaliAccessModifier::Protected),
+            _ => Err(()),
         }
     }
 }

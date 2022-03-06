@@ -4,7 +4,7 @@ use crate::err::*;
 pub fn parse_line_implements(line: &str) -> ParserResult<String> {
     let tokens = line.split_whitespace();
     for token in tokens {
-        if token.starts_with("#") {
+        if token.starts_with('#') {
             break; // ignore comments
         }
 
@@ -12,7 +12,7 @@ pub fn parse_line_implements(line: &str) -> ParserResult<String> {
             continue;
         }
 
-        return Ok(smali_to_java_path(token)?);
+        return smali_to_java_path(token);
     }
     Err(ParserError::MissingInterfacePath(line.to_string()))
 }
