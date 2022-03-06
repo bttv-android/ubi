@@ -2,25 +2,24 @@ mod class;
 mod super_p;
 mod util;
 
-use std::sync::Mutex;
 use crate::err::*;
 use crate::parser::class::parse_line_class;
 use crate::parser::super_p::parse_line_super;
 use crate::smali_class::*;
 use rayon::iter::ParallelIterator;
+use std::sync::Mutex;
 
 pub fn parse_smali<'a>(
     lines: impl ParallelIterator<Item = impl AsRef<str> + Send> + Send,
 ) -> ParserResult<SmaliClass> {
     let current_class = Mutex::new(None);
-    let mut super_path = Mutex::new(None);
+    let super_path = Mutex::new(None);
 
     let res: ParserResult<()> = lines
         .map(|line| parse_line(line.as_ref()))
         .try_for_each(|line| {
             Ok(match line? {
                 Line::Class(class) => {
-
                     // unwrap: other threads holding this lock can only panic in this line, thus the lock never gets poisoned
                     let mut current_class = current_class.lock().unwrap();
 
@@ -30,7 +29,6 @@ pub fn parse_smali<'a>(
                     *current_class = Some(class);
                 }
                 Line::Super(super_p) => {
-
                     // unwrap: other threads holding this lock can only panic in this line, thus the lock never gets poisoned
                     let mut super_path = super_path.lock().unwrap();
 
