@@ -12,6 +12,10 @@ pub enum ParserError {
     MissingSuperPath(String),
     #[error(".class declaration not found")]
     MissingClass(),
+    #[error("multiple .class declarations found")]
+    TooManyClasses(),
+    #[error("multiple .super declarations found")]
+    TooManySupers(),
 }
 
 pub type ParserResult<T> = Result<T, ParserError>;
