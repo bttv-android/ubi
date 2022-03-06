@@ -11,6 +11,8 @@ pub enum ParserError {
     InvalidClassPath(String),
     #[error("class super with missing super path found in this line: {0}")]
     MissingSuperPath(String),
+    #[error("class interface with missing interface path found in this line: {0}")]
+    MissingInterfacePath(String),
     #[error(".class declaration not found")]
     MissingClass(),
     #[error("multiple .class declarations found")]

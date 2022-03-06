@@ -24,3 +24,21 @@ fn test_super_class() {
     expected.super_path = Some("bttv.test.SuperClass$1".to_string());
     assert_eq!(parse_class(input).unwrap(), expected);
 }
+
+#[test]
+fn test_interfaces_class() {
+    let input = ".class Lbttv/test/Util;
+.implements Lbttv/test/Interface$1;
+.implements Lbttv/test/Interface$2;
+.implements Lbttv/test/Interface$3;";
+    let class = parse_class(input).unwrap();
+    assert!(class
+        .interfaces
+        .contains(&"bttv.test.Interface$1".to_string()));
+    assert!(class
+        .interfaces
+        .contains(&"bttv.test.Interface$2".to_string()));
+    assert!(class
+        .interfaces
+        .contains(&"bttv.test.Interface$3".to_string()));
+}

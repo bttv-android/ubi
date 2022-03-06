@@ -1,13 +1,15 @@
 mod class;
+mod implements;
 mod super_p;
 mod util;
 
 use crate::err::*;
-use crate::parser::class::parse_line_class;
-use crate::parser::super_p::parse_line_super;
 use crate::smali_class::*;
+use class::parse_line_class;
+use implements::parse_line_implements;
 use rayon::iter::ParallelIterator;
 use std::sync::Mutex;
+use super_p::parse_line_super;
 use util::set_mutex_once_or_err;
 
 const ERR_TOO_MANY_CLASSES: ParserError = ParserError::TooManyClasses();
@@ -18,6 +20,7 @@ pub fn parse_smali<'a>(
 ) -> ParserResult<SmaliClass> {
     let current_class = Mutex::new(None);
     let super_path = Mutex::new(None);
+    let interfaces = crossbeam_queue::SegQueue::new();
 
     let res: ParserResult<()> = lines
         .map(|line| parse_line(line.as_ref()))
@@ -28,6 +31,9 @@ pub fn parse_smali<'a>(
                 }
                 Line::Super(super_p) => {
                     set_mutex_once_or_err(&super_path, super_p, ERR_TOO_MANY_SUPERS)?;
+                }
+                Line::Implements(interface_path) => {
+                    interfaces.push(interface_path);
                 }
                 _ => todo!(),
             })
@@ -50,6 +56,10 @@ pub fn parse_smali<'a>(
     // unwrap: the other threads have died after proccessing, so we are the only thread with access to the Mutex
     current_class.super_path = super_path.into_inner().unwrap();
 
+    for interf in interfaces {
+        current_class.interfaces.push(interf);
+    }
+
     return Ok(current_class);
 }
 
@@ -70,6 +80,8 @@ fn parse_line(line: &str) -> ParserResult<Line> {
     } else if line.starts_with(".super") {
         let super_path = parse_line_super(line)?;
         return Ok(Line::Super(super_path));
+    } else if line.starts_with(".implements") {
+        return Ok(Line::Implements(parse_line_implements(line)?));
     }
 
     todo!()

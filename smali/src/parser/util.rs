@@ -103,8 +103,8 @@ mod test {
     #[cfg(test)]
     mod test_set_mutex_once_or_err {
         use super::super::*;
-        use std::sync::Mutex;
         use std::sync::Arc;
+        use std::sync::Mutex;
 
         #[test]
         fn green() {
@@ -115,7 +115,6 @@ mod test {
             assert_eq!(mutex.into_inner().unwrap(), Some(value));
         }
 
-        
         #[test]
         fn set_before() {
             let prev = Some(10);
@@ -144,8 +143,10 @@ mod test {
 
             let result = set_mutex_once_or_err(&mutex, 5, ParserError::TooManyClasses());
             assert!(result.is_err());
-            assert!(matches!(result.unwrap_err(), ParserError::PoisonedLockError(_)));
+            assert!(matches!(
+                result.unwrap_err(),
+                ParserError::PoisonedLockError(_)
+            ));
         }
-        
     }
 }
