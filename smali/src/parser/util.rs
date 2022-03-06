@@ -99,4 +99,53 @@ mod test {
             _ => panic!(),
         }
     }
+
+    #[cfg(test)]
+    mod test_set_mutex_once_or_err {
+        use super::super::*;
+        use std::sync::Mutex;
+        use std::sync::Arc;
+
+        #[test]
+        fn green() {
+            let mutex = Mutex::new(None);
+            let value = 5;
+            let result = set_mutex_once_or_err(&mutex, value, ParserError::TooManyClasses());
+            assert!(result.is_ok());
+            assert_eq!(mutex.into_inner().unwrap(), Some(value));
+        }
+
+        
+        #[test]
+        fn set_before() {
+            let prev = Some(10);
+            let mutex = Mutex::new(prev);
+            let value = 5;
+            let err = ParserError::TooManyClasses();
+            let result = set_mutex_once_or_err(&mutex, value, err);
+            assert!(result.is_err());
+            assert!(matches!(result.unwrap_err(), ParserError::TooManyClasses()));
+            assert_eq!(mutex.into_inner().unwrap(), prev);
+        }
+
+        #[test]
+        fn poison() {
+            let mutex = Arc::new(Mutex::new(None));
+            let mutex_2 = Arc::clone(&mutex);
+
+            // cause poison
+            let handle = std::thread::spawn(move || {
+                let m = Arc::clone(&mutex_2);
+                let mut data = m.lock().unwrap();
+                *data = Some(10);
+                panic!();
+            });
+            let _ = handle.join();
+
+            let result = set_mutex_once_or_err(&mutex, 5, ParserError::TooManyClasses());
+            assert!(result.is_err());
+            assert!(matches!(result.unwrap_err(), ParserError::PoisonedLockError(_)));
+        }
+        
+    }
 }
