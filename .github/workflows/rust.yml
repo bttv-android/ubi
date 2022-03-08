@@ -17,7 +17,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: Swatinem/rust-cache@v1
+    - run: mkdir -p target && cd target && curl -v https://github.com/xd009642/tarpaulin/releases/download/0.19.1/cargo-tarpaulin-0.19.1-travis.tar.gz | tar zxvf - && chmod 755 cargo-tarpaulin
     - name: Build
       run: cargo build --verbose
     - name: Run tests
       run: cargo test --verbose
+    - run: target/cargo-tarpaulin tarpaulin --workspace --out Xml
