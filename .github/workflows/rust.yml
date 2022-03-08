@@ -17,6 +17,15 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: Swatinem/rust-cache@v1
+    - name: Build
+      run: cargo build --verbose
+    - name: Run tests
+      run: cargo test --verbose
+
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
     - name: download tarpaulin
       run: |
         wget https://github.com/xd009642/tarpaulin/releases/download/0.19.1/cargo-tarpaulin-0.19.1-travis.tar.gz -O tarpaulin.tar.gz
