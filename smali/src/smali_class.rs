@@ -1,6 +1,8 @@
-pub type SmaliType = String;
+use crate::err::*;
+use crate::parser::util::smali_to_java_path;
+use std::str::FromStr;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum SmaliAccessModifier {
     Public,
     Private,
@@ -61,6 +63,62 @@ pub struct SmaliMethod {
 pub struct SmaliValue {
     pub name: String,
     pub data_type: SmaliType,
+    pub access: SmaliAccessModifier,
     pub is_static: bool,
     pub is_final: bool,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum SmaliType {
+    Void,
+    Boolean,
+    Float,
+    Double,
+    Int,
+    Long,
+    Arr(Box<SmaliType>),
+    Class(String),
+}
+
+impl FromStr for SmaliType {
+    type Err = ParserError;
+    fn from_str(token: &str) -> ParserResult<Self> {
+        match token {
+            "V" => Ok(Self::Void),
+            "Z" => Ok(Self::Boolean),
+            "F" => Ok(Self::Float),
+            "D" => Ok(Self::Double),
+            "I" => Ok(Self::Int),
+            "J" => Ok(Self::Long),
+            _ => {
+                if let Some(rest) = token.strip_prefix('[') {
+                    return Ok(Self::Arr(Box::new(Self::from_str(rest)?)));
+                }
+                Ok(Self::Class(smali_to_java_path(token)?))
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod smali_type_tests {
+    use super::*;
+
+    #[test]
+    fn void() {
+        let input = "V";
+        let expected = SmaliType::Void;
+        let res = SmaliType::from_str(input);
+        assert!(res.is_ok());
+        assert_eq!(res.unwrap(), expected)
+    }
+
+    #[test]
+    fn arr() {
+        let input = "[Lbttv/test/Util;";
+        let expected = SmaliType::Arr(Box::new(SmaliType::Class("bttv.test.Util".to_string())));
+        let res = SmaliType::from_str(input);
+        assert!(res.is_ok());
+        assert_eq!(res.unwrap(), expected)
+    }
 }

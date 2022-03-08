@@ -1,11 +1,14 @@
 mod class;
+mod field;
 mod implements;
 mod super_p;
-mod util;
+pub mod util;
 
 use crate::err::*;
+use crate::parser::field::parse_line_field;
 use crate::smali_class::*;
 use class::parse_line_class;
+use crossbeam_queue::SegQueue;
 use implements::parse_line_implements;
 use rayon::iter::ParallelIterator;
 use std::sync::Mutex;
@@ -20,7 +23,8 @@ pub fn parse_smali(
 ) -> ParserResult<SmaliClass> {
     let current_class = Mutex::new(None);
     let super_path = Mutex::new(None);
-    let interfaces = crossbeam_queue::SegQueue::new();
+    let interfaces = SegQueue::new();
+    let values = SegQueue::new();
 
     let res: ParserResult<()> = lines
         .map(|line| parse_line(line.as_ref()))
@@ -34,6 +38,9 @@ pub fn parse_smali(
                 }
                 Line::Implements(interface_path) => {
                     interfaces.push(interface_path);
+                }
+                Line::Value(value) => {
+                    values.push(value);
                 }
                 _ => todo!(),
             }
@@ -61,6 +68,10 @@ pub fn parse_smali(
         current_class.interfaces.push(interf);
     }
 
+    for value in values {
+        current_class.values.push(value);
+    }
+
     Ok(current_class)
 }
 
@@ -83,6 +94,8 @@ fn parse_line(line: &str) -> ParserResult<Line> {
         return Ok(Line::Super(super_path));
     } else if line.starts_with(".implements") {
         return Ok(Line::Implements(parse_line_implements(line)?));
+    } else if line.starts_with(".field") {
+        return Ok(Line::Value(parse_line_field(line)?));
     }
 
     todo!()

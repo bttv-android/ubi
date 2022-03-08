@@ -21,6 +21,8 @@ pub enum ParserError {
     TooManySupers(),
     #[error("PoisonedLockError: {0:#?}")]
     PoisonedLockError(String),
+    #[error("InvalidField")]
+    InvalidField(),
 }
 
 impl<T> From<PoisonError<T>> for ParserError {
