@@ -23,3 +23,4 @@ jobs:
         tar zxvf tarpaulin.tar.gz
         chmod 755 cargo-tarpaulin
     - run: ./cargo-tarpaulin tarpaulin --workspace --out Xml
+    - uses: codecov/codecov-action@v2
