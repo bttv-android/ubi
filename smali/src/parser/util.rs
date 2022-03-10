@@ -1,5 +1,6 @@
 use crate::parser::ParserError;
 use crate::ParserResult;
+use parking_lot::Mutex;
 
 pub fn is_access_modifier(token: &str) -> bool {
     matches!(token, "private" | "public" | "protected")
@@ -48,11 +49,11 @@ pub fn smali_to_java_path(input: &str) -> ParserResult<String> {
 
 /// Sets the value of a Mutex<Option<I>> and errors when I was not None
 pub fn set_mutex_once_or_err<I>(
-    mutex: &std::sync::Mutex<Option<I>>,
+    mutex: &Mutex<Option<I>>,
     value: I,
     error: ParserError,
 ) -> ParserResult<()> {
-    let mut mutex = mutex.lock()?;
+    let mut mutex = mutex.lock();
 
     if mutex.is_some() {
         return Err(error);
@@ -98,8 +99,6 @@ mod test {
     #[cfg(test)]
     mod test_set_mutex_once_or_err {
         use super::super::*;
-        use std::sync::Arc;
-        use std::sync::Mutex;
 
         #[test]
         fn green() {
@@ -107,7 +106,7 @@ mod test {
             let value = 5;
             let result = set_mutex_once_or_err(&mutex, value, ParserError::TooManyClasses());
             assert!(result.is_ok());
-            assert_eq!(mutex.into_inner().unwrap(), Some(value));
+            assert_eq!(mutex.into_inner(), Some(value));
         }
 
         #[test]
@@ -119,29 +118,7 @@ mod test {
             let result = set_mutex_once_or_err(&mutex, value, err);
             assert!(result.is_err());
             assert!(matches!(result.unwrap_err(), ParserError::TooManyClasses()));
-            assert_eq!(mutex.into_inner().unwrap(), prev);
-        }
-
-        #[test]
-        fn poison() {
-            let mutex = Arc::new(Mutex::new(None));
-            let mutex_2 = Arc::clone(&mutex);
-
-            // cause poison
-            let handle = std::thread::spawn(move || {
-                let m = Arc::clone(&mutex_2);
-                let mut data = m.lock().unwrap();
-                *data = Some(10);
-                panic!();
-            });
-            let _ = handle.join();
-
-            let result = set_mutex_once_or_err(&mutex, 5, ParserError::TooManyClasses());
-            assert!(result.is_err());
-            assert!(matches!(
-                result.unwrap_err(),
-                ParserError::PoisonedLockError(_)
-            ));
+            assert_eq!(mutex.into_inner(), prev);
         }
     }
 }

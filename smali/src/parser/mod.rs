@@ -8,8 +8,8 @@ pub mod util;
 use crate::err::*;
 use crate::smali_class::*;
 use crossbeam_queue::SegQueue;
+use parking_lot::Mutex;
 use rayon::iter::ParallelIterator;
-use std::sync::Mutex;
 use util::set_mutex_once_or_err;
 
 const ERR_TOO_MANY_CLASSES: ParserError = ParserError::TooManyClasses();
@@ -52,8 +52,7 @@ pub fn parse_smali(
         return Err(err);
     }
 
-    // unwrap: the other threads have died after proccessing, so we are the only thread with access to the Mutex
-    let current_class = current_class.into_inner().unwrap();
+    let current_class = current_class.into_inner();
 
     if current_class.is_none() {
         return Err(ParserError::MissingClass());
@@ -62,8 +61,7 @@ pub fn parse_smali(
     // unwrap: guarded by if above
     let mut current_class = current_class.unwrap();
 
-    // unwrap: the other threads have died after proccessing, so we are the only thread with access to the Mutex
-    current_class.super_path = super_path.into_inner().unwrap();
+    current_class.super_path = super_path.into_inner();
 
     current_class.interfaces = interfaces.into_iter().collect();
     current_class.values = values.into_iter().collect();
