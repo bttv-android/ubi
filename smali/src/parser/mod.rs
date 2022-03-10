@@ -1,18 +1,15 @@
 mod class;
 mod field;
 mod implements;
+mod method;
 mod super_p;
 pub mod util;
 
 use crate::err::*;
-use crate::parser::field::parse_line_field;
 use crate::smali_class::*;
-use class::parse_line_class;
 use crossbeam_queue::SegQueue;
-use implements::parse_line_implements;
 use rayon::iter::ParallelIterator;
 use std::sync::Mutex;
-use super_p::parse_line_super;
 use util::set_mutex_once_or_err;
 
 const ERR_TOO_MANY_CLASSES: ParserError = ParserError::TooManyClasses();
@@ -82,15 +79,17 @@ enum Line {
 
 fn parse_line(line: &str) -> ParserResult<Line> {
     if line.starts_with(".class") {
-        let class = parse_line_class(line)?;
+        let class = class::parse_line(line)?;
         return Ok(Line::Class(class));
     } else if line.starts_with(".super") {
-        let super_path = parse_line_super(line)?;
+        let super_path = super_p::parse_line(line)?;
         return Ok(Line::Super(super_path));
     } else if line.starts_with(".implements") {
-        return Ok(Line::Implements(parse_line_implements(line)?));
+        let interface = implements::parse_line(line)?;
+        return Ok(Line::Implements(interface));
     } else if line.starts_with(".field") {
-        return Ok(Line::Value(parse_line_field(line)?));
+        let field = field::parse_line(line)?;
+        return Ok(Line::Value(field));
     }
 
     todo!()

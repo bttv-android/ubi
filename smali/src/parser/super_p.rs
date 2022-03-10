@@ -1,7 +1,7 @@
 use crate::err::*;
 use crate::parser::util::smali_to_java_path;
 
-pub fn parse_line_super(line: &str) -> ParserResult<String> {
+pub fn parse_line(line: &str) -> ParserResult<String> {
     let tokens = line.split_whitespace();
 
     let mut super_path = None;
@@ -34,19 +34,19 @@ mod tests {
     fn test_valid() {
         let input = ".super Lbttv/test/Util;";
         let expected = "bttv.test.Util";
-        assert_eq!(parse_line_super(input).unwrap(), expected);
+        assert_eq!(parse_line(input).unwrap(), expected);
     }
 
     #[test]
     fn test_valid_with_comment() {
         let input = ".super Lbttv/test/Util; #Just ignore me";
         let expected = "bttv.test.Util";
-        assert_eq!(parse_line_super(input).unwrap(), expected);
+        assert_eq!(parse_line(input).unwrap(), expected);
     }
 
     #[test]
     fn test_invalid() {
         let input = ".super bttv test Util";
-        assert!(parse_line_super(input).is_err());
+        assert!(parse_line(input).is_err());
     }
 }

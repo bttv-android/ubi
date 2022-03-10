@@ -1,7 +1,7 @@
 use super::util::smali_to_java_path;
 use crate::err::*;
 
-pub fn parse_line_implements(line: &str) -> ParserResult<String> {
+pub fn parse_line(line: &str) -> ParserResult<String> {
     let tokens = line.split_whitespace();
     for token in tokens {
         if token.starts_with('#') {

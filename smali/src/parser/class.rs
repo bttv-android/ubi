@@ -3,7 +3,7 @@ use crate::parser::util::*;
 use crate::smali_class::*;
 use std::str::FromStr;
 
-pub fn parse_line_class(line: &str) -> ParserResult<SmaliClass> {
+pub fn parse_line(line: &str) -> ParserResult<SmaliClass> {
     let tokens = line.split_whitespace();
 
     let mut class_path = None;
@@ -53,7 +53,7 @@ mod test {
             SmaliAccessModifier::Package,
             false,
         );
-        assert_eq!(parse_line_class(line).unwrap(), expected);
+        assert_eq!(parse_line(line).unwrap(), expected);
     }
 
     #[test]
@@ -64,6 +64,6 @@ mod test {
             SmaliAccessModifier::Package,
             true,
         );
-        assert_eq!(parse_line_class(line).unwrap(), expected);
+        assert_eq!(parse_line(line).unwrap(), expected);
     }
 }

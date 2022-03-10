@@ -3,7 +3,7 @@ use crate::parser::util::is_modifier;
 use crate::smali_class::*;
 use std::str::FromStr;
 
-pub fn parse_line_field(line: &str) -> ParserResult<SmaliValue> {
+pub fn parse_line(line: &str) -> ParserResult<SmaliValue> {
     let tokens = line.split_ascii_whitespace();
 
     let mut is_static = false;
@@ -74,7 +74,7 @@ mod tests {
             is_static: false,
             is_final: false,
         };
-        let res = parse_line_field(input);
+        let res = parse_line(input);
         assert!(res.is_ok());
         assert_eq!(res.unwrap(), expected)
     }
@@ -89,7 +89,7 @@ mod tests {
             is_static: true,
             is_final: true,
         };
-        let res = parse_line_field(input);
+        let res = parse_line(input);
         assert!(res.is_ok());
         assert_eq!(res.unwrap(), expected)
     }
