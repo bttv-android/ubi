@@ -23,6 +23,8 @@ pub enum ParserError {
     PoisonedLockError(String),
     #[error("InvalidField")]
     InvalidField(),
+    #[error("InvalidMethod")]
+    InvalidMethod(),
 }
 
 impl<T> From<PoisonError<T>> for ParserError {

@@ -53,6 +53,7 @@ impl SmaliClass {
 #[derive(Debug, Clone, PartialEq)]
 pub struct SmaliMethod {
     pub name: String,
+    pub access: SmaliAccessModifier,
     pub parameter_types: Vec<SmaliType>,
     pub return_type: SmaliType,
     pub is_static: bool,

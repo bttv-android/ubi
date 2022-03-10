@@ -6,18 +6,16 @@ pub fn is_access_modifier(token: &str) -> bool {
 }
 
 pub fn is_modifier(token: &str) -> bool {
-    if is_access_modifier(token) {
-        return true;
-    }
-    matches!(
-        token,
-        "static" | "final" | "synthetic" | "constructor" | "enum" | "varargs" | "abstract"
-    )
+    is_access_modifier(token)
+        || matches!(
+            token,
+            "static" | "final" | "synthetic" | "constructor" | "enum" | "varargs" | "abstract"
+        )
 }
 
 pub fn smali_to_java_path(input: &str) -> ParserResult<String> {
     let error = Err(ParserError::InvalidClassPath(input.to_string()));
-    if input.is_empty() {
+    if input.len() < 2 {
         return error;
     }
 

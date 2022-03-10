@@ -22,6 +22,7 @@ pub fn parse_smali(
     let super_path = Mutex::new(None);
     let interfaces = SegQueue::new();
     let values = SegQueue::new();
+    let methods = SegQueue::new();
 
     let res: ParserResult<()> = lines
         .map(|line| parse_line(line.as_ref()))
@@ -39,7 +40,10 @@ pub fn parse_smali(
                 Line::Value(value) => {
                     values.push(value);
                 }
-                _ => todo!(),
+                Line::Method(method) => {
+                    methods.push(method);
+                }
+                Line::Other => {}
             }
             Ok(())
         });
@@ -63,6 +67,7 @@ pub fn parse_smali(
 
     current_class.interfaces = interfaces.into_iter().collect();
     current_class.values = values.into_iter().collect();
+    current_class.methods = methods.into_iter().collect();
 
     Ok(current_class)
 }
@@ -90,7 +95,10 @@ fn parse_line(line: &str) -> ParserResult<Line> {
     } else if line.starts_with(".field") {
         let field = field::parse_line(line)?;
         return Ok(Line::Value(field));
+    } else if line.starts_with(".method") {
+        let method = method::parse_line(line)?;
+        return Ok(Line::Method(method));
+    } else {
+        return Ok(Line::Other);
     }
-
-    todo!()
 }
