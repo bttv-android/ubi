@@ -64,13 +64,8 @@ pub fn parse_smali(
     // unwrap: the other threads have died after proccessing, so we are the only thread with access to the Mutex
     current_class.super_path = super_path.into_inner().unwrap();
 
-    for interf in interfaces {
-        current_class.interfaces.push(interf);
-    }
-
-    for value in values {
-        current_class.values.push(value);
-    }
+    current_class.interfaces = interfaces.into_iter().collect();
+    current_class.values = values.into_iter().collect();
 
     Ok(current_class)
 }

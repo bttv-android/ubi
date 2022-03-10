@@ -50,7 +50,7 @@ pub fn parse_line_field(line: &str) -> ParserResult<SmaliValue> {
     Err(ParserError::InvalidField())
 }
 
-fn get_next<'a, 'b>(split: &'a mut std::str::SplitN<char>) -> ParserResult<&'a str> {
+fn get_next<'a>(split: &'a mut std::str::SplitN<char>) -> ParserResult<&'a str> {
     match split.next() {
         Some(next) => Ok(next),
         None => Err(ParserError::InvalidField()),
