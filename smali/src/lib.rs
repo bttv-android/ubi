@@ -16,8 +16,8 @@ use std::io::BufRead;
 use std::io::BufReader;
 
 /// Given a file_path `parse_file` reads the file and parses it's content into a SmaliClass
-pub fn parse_file(file_path: &str) -> ParserResult<SmaliClass> {
-    let file = File::open(file_path)?;
+pub fn parse_file(file_path: impl AsRef<std::path::Path>) -> ParserResult<SmaliClass> {
+    let file = File::open(file_path.as_ref())?;
     let reader = BufReader::new(file);
     let lines = reader.lines().filter(|l| l.is_ok()).map(Result::unwrap);
 
