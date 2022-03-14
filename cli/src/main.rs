@@ -6,5 +6,5 @@ mod logging;
 
 fn main() {
     logging::setup();
-    let args = args::parse();
+    let _args = args::parse();
 }

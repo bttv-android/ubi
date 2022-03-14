@@ -83,20 +83,20 @@ enum Line {
 fn parse_line(line: &str) -> ParserResult<Line> {
     if line.starts_with(".class") {
         let class = class::parse_line(line)?;
-        return Ok(Line::Class(class));
+        Ok(Line::Class(class))
     } else if line.starts_with(".super") {
         let super_path = super_p::parse_line(line)?;
-        return Ok(Line::Super(super_path));
+        Ok(Line::Super(super_path))
     } else if line.starts_with(".implements") {
         let interface = implements::parse_line(line)?;
-        return Ok(Line::Implements(interface));
+        Ok(Line::Implements(interface))
     } else if line.starts_with(".field") {
         let field = field::parse_line(line)?;
-        return Ok(Line::Value(field));
+        Ok(Line::Value(field))
     } else if line.starts_with(".method") {
         let method = method::parse_line(line)?;
-        return Ok(Line::Method(method));
+        Ok(Line::Method(method))
     } else {
-        return Ok(Line::Other);
+        Ok(Line::Other)
     }
 }

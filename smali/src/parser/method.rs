@@ -14,7 +14,7 @@ pub fn parse_line(line: &str) -> ParserResult<SmaliMethod> {
     let mut access = SmaliAccessModifier::Package;
 
     for token in tokens {
-        if token.starts_with("#") {
+        if token.starts_with('#') {
             break; // ignore comments
         }
 
@@ -36,9 +36,9 @@ pub fn parse_line(line: &str) -> ParserResult<SmaliMethod> {
 
         let parse_result = parse_method(token)?;
 
-        name = parse_result.0;
-        params = parse_result.1;
-        return_type = parse_result.2;
+        name = Some(parse_result.0);
+        params = Some(parse_result.1);
+        return_type = Some(parse_result.2);
     }
 
     if name.is_none() || params.is_none() || return_type.is_none() {
@@ -58,16 +58,14 @@ pub fn parse_line(line: &str) -> ParserResult<SmaliMethod> {
 }
 
 /// returns name, params and return type in that order
-fn parse_method(
-    token: &str,
-) -> ParserResult<(Option<String>, Option<Vec<SmaliType>>, Option<SmaliType>)> {
+fn parse_method(token: &str) -> ParserResult<(String, Vec<SmaliType>, SmaliType)> {
     let (name, token) = token.split_once('(').ok_or(ParserError::InvalidMethod())?;
 
     let (params, token) = parse_type_stream(token)?;
 
     let return_t = SmaliType::from_str(token)?;
 
-    Ok((Some(name.to_string()), Some(params), Some(return_t)))
+    Ok((name.to_string(), params, return_t))
 }
 
 /// expects a stream of smali types in a &str and parses them, returns once it sees an invalid char
@@ -120,7 +118,7 @@ fn maybe_wrap_in_arr(type_p: SmaliType, should_wrap: bool) -> SmaliType {
     if !should_wrap {
         return type_p;
     }
-    return SmaliType::Arr(Box::new(type_p));
+    SmaliType::Arr(Box::new(type_p))
 }
 
 #[cfg(test)]
@@ -137,10 +135,10 @@ mod tests {
                 "$values()[Ltv/twitch/android/api/resumewatching/ResumeWatchingApi$VideoType;";
             let res = parse_method(input);
             let (name, params, return_t) = res.unwrap();
-            assert_eq!(name.unwrap(), "$values".to_string());
-            assert!(params.unwrap().is_empty());
+            assert_eq!(name, "$values".to_string());
+            assert!(params.is_empty());
             assert_eq!(
-                return_t.unwrap(),
+                return_t,
                 SmaliType::Arr(Box::new(SmaliType::Class(
                     "tv.twitch.android.api.resumewatching.ResumeWatchingApi$VideoType".to_string()
                 )))
