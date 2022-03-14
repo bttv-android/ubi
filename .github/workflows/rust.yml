@@ -31,5 +31,5 @@ jobs:
         wget https://github.com/xd009642/tarpaulin/releases/download/0.19.1/cargo-tarpaulin-0.19.1-travis.tar.gz -O tarpaulin.tar.gz
         tar zxvf tarpaulin.tar.gz
         chmod 755 cargo-tarpaulin
-    - run: ./cargo-tarpaulin tarpaulin --workspace --out Xml
+    - run: ./cargo-tarpaulin tarpaulin --workspace --ignore-tests --out Xml
     - uses: codecov/codecov-action@v2
