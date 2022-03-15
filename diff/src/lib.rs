@@ -25,8 +25,10 @@ impl<'a, 'b> ClassDiff<'a, 'b> {
     }
 }
 
+#[derive(Debug, PartialEq)]
 pub struct ValueDiff<'orig, 'cmp> {
     name: &'orig String,
+    not_found: bool,
     data_type: Option<(&'orig SmaliType, &'cmp SmaliType)>,
     access: Option<(&'orig SmaliAccessModifier, &'cmp SmaliAccessModifier)>,
     is_static: Option<(bool, bool)>,
@@ -37,11 +39,18 @@ impl<'orig, 'cmp> ValueDiff<'orig, 'cmp> {
     fn new(name: &'orig String) -> Self {
         Self {
             name,
+            not_found: false,
             data_type: None,
             access: None,
             is_static: None,
             is_final: None,
         }
+    }
+
+    fn not_found(name: &'orig String) -> Self {
+        let mut inst = Self::new(name);
+        inst.not_found = true;
+        inst
     }
 }
 
