@@ -2,14 +2,15 @@ mod diff_vec;
 
 use crate::diff_vec::*;
 use smali::*;
-
+#[derive(Debug, PartialEq)]
 pub struct ClassDiff<'orig, 'cmp> {
-    class_path: Option<(&'orig String, &'cmp String)>,
-    access: Option<(&'orig SmaliAccessModifier, &'cmp SmaliAccessModifier)>,
-    is_abstract: Option<(bool, bool)>,
-    super_path: Option<(&'orig Option<String>, &'cmp Option<String>)>,
-    interfaces: Option<Vec<&'orig String>>,
-    values: Option<Vec<ValueDiff<'orig, 'cmp>>>,
+    pub class_path: Option<(&'orig String, &'cmp String)>,
+    pub access: Option<(&'orig SmaliAccessModifier, &'cmp SmaliAccessModifier)>,
+    pub is_abstract: Option<(bool, bool)>,
+    pub super_path: Option<(&'orig Option<String>, &'cmp Option<String>)>,
+    pub interfaces: Option<Vec<&'orig String>>,
+    pub values: Option<Vec<ValueDiff<'orig, 'cmp>>>,
+    pub methods: Option<Vec<MethodDiff<'orig, 'cmp>>>,
 }
 
 impl<'a, 'b> ClassDiff<'a, 'b> {
@@ -21,18 +22,19 @@ impl<'a, 'b> ClassDiff<'a, 'b> {
             super_path: None,
             interfaces: None,
             values: None,
+            methods: None,
         }
     }
 }
 
 #[derive(Debug, PartialEq)]
 pub struct ValueDiff<'orig, 'cmp> {
-    name: &'orig String,
-    not_found: bool,
-    data_type: Option<(&'orig SmaliType, &'cmp SmaliType)>,
-    access: Option<(&'orig SmaliAccessModifier, &'cmp SmaliAccessModifier)>,
-    is_static: Option<(bool, bool)>,
-    is_final: Option<(bool, bool)>,
+    pub name: &'orig String,
+    pub not_found: bool,
+    pub data_type: Option<(&'orig SmaliType, &'cmp SmaliType)>,
+    pub access: Option<(&'orig SmaliAccessModifier, &'cmp SmaliAccessModifier)>,
+    pub is_static: Option<(bool, bool)>,
+    pub is_final: Option<(bool, bool)>,
 }
 
 impl<'orig, 'cmp> ValueDiff<'orig, 'cmp> {
@@ -48,6 +50,37 @@ impl<'orig, 'cmp> ValueDiff<'orig, 'cmp> {
     }
 
     fn not_found(name: &'orig String) -> Self {
+        let mut inst = Self::new(name);
+        inst.not_found = true;
+        inst
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub struct MethodDiff<'orig, 'cmp> {
+    pub name: &'orig String,
+    pub not_found: bool,
+    pub return_type: Option<(&'orig SmaliType, &'cmp SmaliType)>,
+    pub access: Option<(&'orig SmaliAccessModifier, &'cmp SmaliAccessModifier)>,
+    pub is_static: Option<(bool, bool)>,
+    pub is_final: Option<(bool, bool)>,
+    pub parameter_types: Option<(&'orig Vec<SmaliType>, &'cmp Vec<SmaliType>)>,
+}
+
+impl<'orig, 'cmp> MethodDiff<'orig, 'cmp> {
+    pub fn new(name: &'orig String) -> Self {
+        Self {
+            name,
+            not_found: false,
+            return_type: None,
+            access: None,
+            is_static: None,
+            is_final: None,
+            parameter_types: None,
+        }
+    }
+
+    pub fn not_found(name: &'orig String) -> Self {
         let mut inst = Self::new(name);
         inst.not_found = true;
         inst
@@ -87,6 +120,11 @@ pub fn diff<'a, 'b>(orig: &'a SmaliClass, cmp: &'b SmaliClass) -> Option<ClassDi
     if let Some(vec_diff) = diff_value_vec(&orig.values, &cmp.values) {
         any_diff_found = true;
         diff.values = Some(vec_diff);
+    }
+
+    if let Some(vec_diff) = diff_method_vec(&orig.methods, &cmp.methods) {
+        any_diff_found = true;
+        diff.methods = Some(vec_diff);
     }
 
     if !any_diff_found {

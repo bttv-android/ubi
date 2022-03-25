@@ -1,5 +1,5 @@
-use crate::ValueDiff;
-use smali::SmaliValue;
+use crate::{MethodDiff, ValueDiff};
+use smali::{SmaliMethod, SmaliValue};
 
 /// returns Some with all items that are in orig and not in cmp or None if empty
 pub fn diff_string_vec<'a, 'b>(orig: &'a [String], cmp: &'b [String]) -> Option<Vec<&'a String>> {
@@ -62,6 +62,63 @@ pub fn diff_value_vec<'a, 'b>(
         }
         if !found {
             diffs.push(ValueDiff::not_found(&item.name));
+        }
+    }
+
+    if diffs.is_empty() {
+        None
+    } else {
+        Some(diffs)
+    }
+}
+
+/// returns Some with all items that are in orig and not in cmp or None if empty
+pub fn diff_method_vec<'a, 'b>(
+    orig: &'a [SmaliMethod],
+    cmp: &'b [SmaliMethod],
+) -> Option<Vec<MethodDiff<'a, 'b>>> {
+    let mut diffs = vec![];
+
+    // perf: runs in O(n*m) maybe fix later
+    for item in orig {
+        let mut found = false;
+        for other in cmp {
+            if item.name != other.name {
+                continue;
+            }
+
+            found = true;
+
+            let mut any_changes_found = false;
+            let mut diff = MethodDiff::new(&item.name);
+            if item.is_final != other.is_final {
+                any_changes_found = true;
+                diff.is_final = Some((item.is_final, other.is_final));
+            }
+            if item.is_static != other.is_static {
+                any_changes_found = true;
+                diff.is_static = Some((item.is_static, other.is_static));
+            }
+            if item.access != other.access {
+                any_changes_found = true;
+                diff.access = Some((&item.access, &other.access));
+            }
+            if item.return_type != other.return_type {
+                any_changes_found = true;
+                diff.return_type = Some((&item.return_type, &other.return_type));
+            }
+            if item.parameter_types != other.parameter_types {
+                any_changes_found = true;
+                diff.parameter_types = Some((&item.parameter_types, &other.parameter_types));
+            }
+            if any_changes_found {
+                diffs.push(diff);
+            } else {
+                break;
+            }
+        }
+        if !found {
+            diffs.push(MethodDiff::not_found(&item.name));
         }
     }
 
