@@ -191,7 +191,7 @@ mod tests {
             is_final: false,
             is_static: false,
         };
-        let a = [v2.clone(), v1.clone()];
+        let a = [v2, v1.clone()];
         v1.is_static = false;
         v1.data_type = SmaliType::Class("java.lang.Double".to_string());
 
