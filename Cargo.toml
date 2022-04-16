@@ -1,7 +1,8 @@
 [workspace]
 
 members = [
+  "aar",
   "cli",
+  "diff",
   "smali",
-  "diff"
 ]

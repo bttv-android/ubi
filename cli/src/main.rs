@@ -4,7 +4,11 @@ extern crate tracing;
 mod args;
 mod logging;
 
+use aar::prepare_mock_aar;
+
 fn main() {
     logging::setup();
-    let _args = args::parse();
+    let args = args::parse();
+
+    let _ = prepare_mock_aar(args.mock_aar);
 }
