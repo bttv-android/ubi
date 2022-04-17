@@ -845,6 +845,7 @@ dependencies = [
  "clap",
  "parking_lot",
  "regex",
+ "thiserror",
  "tracing",
  "tracing-subscriber",
 ]

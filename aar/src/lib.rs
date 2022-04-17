@@ -4,7 +4,7 @@ use zip::ZipArchive;
 
 mod err;
 
-use err::*;
+pub use err::*;
 
 pub fn prepare_mock_aar(
     aar_path: impl AsRef<Path>,
