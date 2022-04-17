@@ -37,12 +37,13 @@ use aar::prepare_mock_aar;
 use args::Args;
 use err::ApplicationError;
 
-fn main() {
+fn main() -> miette::Result<()> {
     logging::setup();
     let args = args::parse();
     if let Err(err) = run(args) {
-        // TODO: print error
+        return Err(miette::Report::new(err));
     }
+    Ok(())
 }
 
 fn run(args: Args) -> Result<(), ApplicationError> {

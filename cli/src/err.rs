@@ -1,7 +1,8 @@
+use miette::Diagnostic;
 use thiserror::Error;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, Diagnostic)]
 pub enum ApplicationError {
-    #[error("PrepareAARError")]
+    #[error(transparent)]
     PrepareAARError(#[from] aar::PrepareAARError),
 }
