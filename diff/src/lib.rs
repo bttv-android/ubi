@@ -37,6 +37,7 @@ pub struct ValueDiff<'orig, 'cmp> {
     pub is_final: Option<(bool, bool)>,
 }
 
+#[allow(clippy::ptr_arg)]
 impl<'orig, 'cmp> ValueDiff<'orig, 'cmp> {
     fn new(name: &'orig String) -> Self {
         Self {
@@ -67,6 +68,7 @@ pub struct MethodDiff<'orig, 'cmp> {
     pub parameter_types: Option<(&'orig Vec<SmaliType>, &'cmp Vec<SmaliType>)>,
 }
 
+#[allow(clippy::ptr_arg)]
 impl<'orig, 'cmp> MethodDiff<'orig, 'cmp> {
     pub fn new(name: &'orig String) -> Self {
         Self {

@@ -1,4 +1,4 @@
-use std::{fmt::Result, process::Output};
+use std::process::Output;
 
 use thiserror::Error;
 

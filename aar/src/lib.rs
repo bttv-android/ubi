@@ -10,11 +10,10 @@ pub fn prepare_mock_aar(
     aar_path: impl AsRef<Path>,
     dx_path: &str,
     baksmali_path: &str,
-) -> PrepareAARResult<()> {
+) -> PrepareAARResult<&'static str> {
     let classes_jar_path = extract_classes_jar(aar_path)?;
     let dex_path = run_dx(dx_path, classes_jar_path)?;
-    let smali_dir_path = run_baksmali(baksmali_path, dex_path)?;
-    Ok(())
+    run_baksmali(baksmali_path, dex_path)
 }
 
 fn extract_classes_jar(aar_path: impl AsRef<Path>) -> PrepareAARResult<&'static str> {
