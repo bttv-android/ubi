@@ -27,7 +27,7 @@
 #![warn(clippy::pedantic)]
 
 #[macro_use]
-extern crate tracing;
+extern crate common;
 
 mod args;
 mod err;

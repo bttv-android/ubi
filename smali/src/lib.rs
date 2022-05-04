@@ -1,7 +1,7 @@
 //! smali is a crate that parses the metadata of smali classes
 //! to be used in the ubi cli tool
 
-extern crate thiserror;
+extern crate common;
 
 mod err;
 mod parser;

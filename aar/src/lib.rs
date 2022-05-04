@@ -1,3 +1,5 @@
+extern crate common;
+
 use std::fs::File;
 use std::path::Path;
 use zip::ZipArchive;

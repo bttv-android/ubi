@@ -1,3 +1,4 @@
+use common::thiserror;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
