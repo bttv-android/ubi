@@ -1,3 +1,4 @@
+use common::thiserror;
 use std::process::Output;
 
 use miette::Diagnostic;

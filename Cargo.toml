@@ -3,6 +3,7 @@
 members = [
   "aar",
   "cli",
+  "common",
   "diff",
   "smali",
 ]
